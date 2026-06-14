@@ -15,7 +15,7 @@ export default function CompanyData() {
 
   const fetchCompanies = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/companies/data', {
+      const response = await axios.get('https://shancom-crmp-1.onrender.com/api/companies/data', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCompanies(response.data);

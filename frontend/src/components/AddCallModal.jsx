@@ -24,7 +24,7 @@ export default function AddCallModal({ onClose, token }) {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/customers/', {
+        const res = await axios.get('https://shancom-crmp-1.onrender.com/api/customers/', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCustomers(res.data);
@@ -38,7 +38,7 @@ export default function AddCallModal({ onClose, token }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/calls/', formData, {
+      await axios.post('https://shancom-crmp-1.onrender.com/api/calls/', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage('Call logged successfully');

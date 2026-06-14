@@ -31,7 +31,7 @@ export default function Layout() {
     if (!token) return;
     const fetchCustomers = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/customers/', {
+        const res = await axios.get('https://shancom-crmp-1.onrender.com/api/customers/', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCustomers(res.data);
@@ -46,7 +46,7 @@ export default function Layout() {
     if (!token) return;
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/auth/me', {
+        const res = await axios.get('https://shancom-crmp-1.onrender.com/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.project_title) {
