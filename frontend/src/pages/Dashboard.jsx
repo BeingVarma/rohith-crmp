@@ -15,8 +15,8 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [metricsRes, customersRes] = await Promise.all([
-          axios.get('https://shancom-crmp-1.onrender.com/api/metrics/', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('https://shancom-crmp-1.onrender.com/api/customers/', { headers: { Authorization: `Bearer ${token}` } })
+          axios.get(`${import.meta.env.VITE_API_URL}/metrics/`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${import.meta.env.VITE_API_URL}/customers/`, { headers: { Authorization: `Bearer ${token}` } })
         ]);
         setMetrics(metricsRes.data);
         setCustomers(customersRes.data);

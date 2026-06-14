@@ -9,7 +9,10 @@ app = FastAPI(title="Rohit Project API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://shancom-crmp-git-main-harshas-projects-481b016d.vercel.app",
+        "http://localhost:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

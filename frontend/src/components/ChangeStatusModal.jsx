@@ -24,7 +24,7 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
-        const res = await axios.get('https://shancom-crmp-1.onrender.com/api/customers/', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/customers/`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCustomers(res.data);
@@ -44,7 +44,7 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
     
     setIsLoading(true);
     try {
-      await axios.put(`https://shancom-crmp-1.onrender.com/api/customers/${selectedCustomerId}`, 
+      await axios.put(`${import.meta.env.VITE_API_URL}/customers/${selectedCustomerId}`, 
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );

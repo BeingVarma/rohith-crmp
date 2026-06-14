@@ -18,7 +18,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('https://shancom-crmp-1.onrender.com/api/auth/me', {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setName(res.data.name || '');
@@ -47,7 +47,7 @@ export default function Profile() {
         payload.password = password;
       }
       
-      await axios.put('https://shancom-crmp-1.onrender.com/api/auth/me', payload, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/auth/me`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

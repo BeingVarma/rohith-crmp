@@ -16,7 +16,7 @@ export default function Login() {
       formData.append('username', username);
       formData.append('password', password);
       
-      const response = await axios.post('https://shancom-crmp-1.onrender.com/api/auth/login', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, formData, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
       });
       

@@ -31,7 +31,7 @@ export default function CustomerData() {
 
   const fetchCustomers = async () => {
     try {
-      const response = await axios.get('https://shancom-crmp-1.onrender.com/api/customers/', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/customers/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCustomers(response.data);
@@ -46,7 +46,7 @@ export default function CustomerData() {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this customer? All their interaction history will be lost.')) {
       try {
-        await axios.delete(`https://shancom-crmp-1.onrender.com/api/customers/${customerId}`, {
+        await axios.delete(`${import.meta.env.VITE_API_URL}/customers/${customerId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchCustomers();

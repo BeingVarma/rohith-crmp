@@ -17,7 +17,7 @@ export default function EditCompanyModal({ onClose, token, company, onUpdate }) 
     setMessage('');
     
     try {
-      await axios.put(`https://shancom-crmp-1.onrender.com/api/companies/${company.id}`, formData, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/companies/${company.id}`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage('Company updated successfully!');

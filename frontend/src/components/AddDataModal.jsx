@@ -14,7 +14,7 @@ export default function AddDataModal({ onClose, token }) {
     const data = new FormData();
     data.append('file', file);
     try {
-      const res = await axios.post('https://shancom-crmp-1.onrender.com/api/customers/import', data, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/customers/import`, data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       setMessage(res.data.message);
@@ -31,7 +31,7 @@ export default function AddDataModal({ onClose, token }) {
   const handleManualSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('https://shancom-crmp-1.onrender.com/api/customers/', formData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/customers/`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage('Customer added successfully');
