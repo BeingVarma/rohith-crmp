@@ -7,6 +7,7 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Rohit Project API")
 
+origins = [     "http://localhost:5173",  "https://shancom-crmp-virid.vercel.app" ]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
