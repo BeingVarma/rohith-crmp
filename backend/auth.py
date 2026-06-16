@@ -5,9 +5,10 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+import os
 import models, schemas, database
 
-SECRET_KEY = "rohit_project_secret_key_change_in_production"
+SECRET_KEY = os.environ.get("SECRET_KEY", "rohit_project_secret_key_change_in_production")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 

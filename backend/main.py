@@ -7,11 +7,10 @@ models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Rohit Project API")
 
-origins = [ "http://localhost:5173", 
-           "https://shancom-crmp-virid.vercel.app",
-           "https://shancom-crmp-git-main-harshas-projects-481b016d.vercel.app",
-           "https://shancom-crmp-zaw0cd17d-harshas-projects-481b016d.vercel.app", 
-           "https://rohithproject.shancom.in" ]
+import os
+
+origins = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
