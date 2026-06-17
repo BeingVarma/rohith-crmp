@@ -8,12 +8,28 @@ router = APIRouter(prefix="/api/companies", tags=["companies"])
 
 @router.get("/", response_model=List[schemas.Company])
 def get_companies(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    companies = db.query(models.Company).offset(skip).limit(limit).all()
+    companies = db.query(models.Company).order_by(models.Company.name.asc()).offset(skip).limit(limit).all()
     return companies
+
+@router.post("/", response_model=schemas.Company)
+def create_company(company: schemas.CompanyCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    existing = db.query(models.Company).filter(func.lower(models.Company.name) == company.name.lower()).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Company with this name already exists")
+    
+    db_company = models.Company(
+        name=company.name,
+        email=company.email,
+        contact_number=company.contact_number
+    )
+    db.add(db_company)
+    db.commit()
+    db.refresh(db_company)
+    return db_company
 
 @router.get("/data")
 def get_company_data(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    companies = db.query(models.Company).offset(skip).limit(limit).all()
+    companies = db.query(models.Company).order_by(models.Company.name.asc()).offset(skip).limit(limit).all()
     
     return [
         {
@@ -22,7 +38,7 @@ def get_company_data(skip: int = 0, limit: int = 100, db: Session = Depends(data
             "email": c.email,
             "contact_number": c.contact_number,
             "customer_count": len(c.customers),
-            "customers": [{"id": cust.id, "name": cust.name, "contact_number": cust.contact_number, "status": cust.status} for cust in c.customers]
+            "customers": sorted([{"id": cust.id, "name": cust.name, "contact_number": cust.contact_number, "status": cust.status} for cust in c.customers], key=lambda x: x['name'].lower() if x['name'] else '')
         } 
         for c in companies
     ]

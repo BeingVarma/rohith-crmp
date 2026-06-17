@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/customers", tags=["customers"])
 
 @router.get("/", response_model=List[schemas.Customer])
 def get_customers(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    customers = db.query(models.Customer).offset(skip).limit(limit).all()
+    customers = db.query(models.Customer).order_by(models.Customer.name.asc()).offset(skip).limit(limit).all()
     return customers
 
 @router.post("/", response_model=schemas.Customer)
@@ -31,7 +31,11 @@ def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(data
         name=customer.name,
         contact_number=customer.contact_number,
         email=customer.email,
-        status=customer.status
+        status=customer.status,
+        project_name=customer.project_name,
+        project_location=customer.project_location,
+        state=customer.state,
+        type_of_project=customer.type_of_project
     )
     db.add(db_customer)
     db.commit()
@@ -39,13 +43,16 @@ def create_customer(customer: schemas.CustomerCreate, db: Session = Depends(data
     return db_customer
 
 @router.put("/{customer_id}", response_model=schemas.Customer)
-def update_customer_status(customer_id: int, customer_update: schemas.CustomerUpdate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def update_customer(customer_id: int, customer_update: schemas.CustomerUpdate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     db_customer = db.query(models.Customer).filter(models.Customer.id == customer_id).first()
     if not db_customer:
         raise HTTPException(status_code=404, detail="Customer not found")
     
     old_status = db_customer.status
-    db_customer.status = customer_update.status
+    
+    update_data = customer_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_customer, key, value)
     
     # Check if status is changed to Confirmed List
     if old_status != "Confirmed List" and customer_update.status == "Confirmed List":
@@ -97,7 +104,11 @@ async def import_customers(file: UploadFile = File(...), db: Session = Depends(d
         
         optional_mappings = {
             'Company Name': ['company name', 'company', 'organization', 'client company'],
-            'Email': ['email', 'email address', 'e-mail']
+            'Email': ['email', 'email address', 'e-mail'],
+            'Project Name': ['project name', 'project', 'site name'],
+            'Project Location': ['project location', 'location', 'site location'],
+            'State': ['state', 'region', 'province'],
+            'Type of Project': ['type of project', 'project type', 'type']
         }
         
         # Map actual dataframe columns to our required columns
@@ -120,39 +131,90 @@ async def import_customers(file: UploadFile = File(...), db: Session = Depends(d
                     col_map[opt_col] = actual_col
                     break
         
-        count = 0
+        total_records = 0
+        success_count = 0
+        skipped_count = 0
+        failed_count = 0
+
         for _, row in df.iterrows():
-            if col_map['Company Name'] and pd.notna(row[col_map['Company Name']]):
-                company_name = str(row[col_map['Company Name']]).strip()
-            else:
-                company_name = "Unknown"
+            total_records += 1
+            try:
+                customer_name = str(row[col_map['Customer Name']]).strip()
+                contact_number = str(row[col_map['Contact Number']]).strip()
                 
-            if not company_name or company_name.lower() == 'nan':
-                company_name = "Unknown"
+                # Check for duplicate
+                existing_customer = db.query(models.Customer).filter(
+                    models.Customer.name == customer_name,
+                    models.Customer.contact_number == contact_number
+                ).first()
                 
-            company = db.query(models.Company).filter(models.Company.name == company_name).first()
-            if not company:
-                company = models.Company(name=company_name)
-                db.add(company)
-                db.commit()
-                db.refresh(company)
-            
-            if col_map['Email'] and pd.notna(row[col_map['Email']]):
-                email_val = str(row[col_map['Email']]).strip()
-            else:
-                email_val = None
+                if existing_customer:
+                    skipped_count += 1
+                    continue
+
+                if col_map['Company Name'] and pd.notna(row[col_map['Company Name']]):
+                    company_name = str(row[col_map['Company Name']]).strip()
+                else:
+                    company_name = "Unknown"
+                    
+                if not company_name or company_name.lower() == 'nan':
+                    company_name = "Unknown"
+                    
+                company = db.query(models.Company).filter(models.Company.name == company_name).first()
+                if not company:
+                    company = models.Company(name=company_name)
+                    db.add(company)
+                    db.commit()
+                    db.refresh(company)
                 
-            db_customer = models.Customer(
-                company_id=company.id,
-                name=str(row[col_map['Customer Name']]).strip(),
-                contact_number=str(row[col_map['Contact Number']]).strip(),
-                email=email_val if email_val and email_val.lower() != 'nan' else None,
-                status="Not Assigned"
-            )
-            db.add(db_customer)
-            count += 1
+                if col_map['Email'] and pd.notna(row[col_map['Email']]):
+                    email_val = str(row[col_map['Email']]).strip()
+                else:
+                    email_val = None
+                    
+                project_name_val = None
+                if col_map['Project Name'] and pd.notna(row[col_map['Project Name']]):
+                    project_name_val = str(row[col_map['Project Name']]).strip()
+                    
+                project_location_val = None
+                if col_map['Project Location'] and pd.notna(row[col_map['Project Location']]):
+                    project_location_val = str(row[col_map['Project Location']]).strip()
+                    
+                state_val = None
+                if col_map['State'] and pd.notna(row[col_map['State']]):
+                    state_val = str(row[col_map['State']]).strip()
+                    
+                type_of_project_val = None
+                if col_map['Type of Project'] and pd.notna(row[col_map['Type of Project']]):
+                    type_of_project_val = str(row[col_map['Type of Project']]).strip()
+                    
+                db_customer = models.Customer(
+                    company_id=company.id,
+                    name=customer_name,
+                    contact_number=contact_number,
+                    email=email_val if email_val and email_val.lower() != 'nan' else None,
+                    status="Not Assigned",
+                    project_name=project_name_val if project_name_val and project_name_val.lower() != 'nan' else None,
+                    project_location=project_location_val if project_location_val and project_location_val.lower() != 'nan' else None,
+                    state=state_val if state_val and state_val.lower() != 'nan' else None,
+                    type_of_project=type_of_project_val if type_of_project_val and type_of_project_val.lower() != 'nan' else None
+                )
+                db.add(db_customer)
+                success_count += 1
+            except Exception as row_error:
+                failed_count += 1
+                db.rollback()  # Rollback any failed partial row changes (like Company creation)
+
         db.commit()
-        return {"message": f"Successfully imported {count} customers"}
+        return {
+            "message": "Import completed successfully",
+            "summary": {
+                "total": total_records,
+                "success": success_count,
+                "skipped": skipped_count,
+                "failed": failed_count
+            }
+        }
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

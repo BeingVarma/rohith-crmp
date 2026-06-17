@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp, Edit2, Mail, Phone } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import EditCompanyModal from '../components/EditCompanyModal';
+import AddCompanyModal from '../components/AddCompanyModal';
 
 export default function CompanyData() {
   const { token } = useContext(AuthContext);
@@ -12,6 +13,7 @@ export default function CompanyData() {
   const [companies, setCompanies] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
   const [editModalCompany, setEditModalCompany] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const fetchCompanies = async () => {
     try {
@@ -41,11 +43,19 @@ export default function CompanyData() {
   return (
     <div className="py-2">
       <div>
-        <div className="mb-8 flex items-center">
-          <Link to="/" className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-            <ArrowLeft size={24} />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Company Data</h1>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center">
+            <Link to="/" className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <ArrowLeft size={24} />
+            </Link>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Company Data</h1>
+          </div>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            Add Company
+          </button>
         </div>
         
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-colors duration-200">
@@ -140,6 +150,13 @@ export default function CompanyData() {
           company={editModalCompany}
           token={token}
           onClose={() => setEditModalCompany(null)}
+          onUpdate={fetchCompanies}
+        />
+      )}
+      {isAddModalOpen && (
+        <AddCompanyModal
+          token={token}
+          onClose={() => setIsAddModalOpen(false)}
           onUpdate={fetchCompanies}
         />
       )}

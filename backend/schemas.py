@@ -67,6 +67,10 @@ class CustomerBase(BaseModel):
     contact_number: str
     email: Optional[str] = None
     status: str
+    project_name: Optional[str] = None
+    project_location: Optional[str] = None
+    state: Optional[str] = None
+    type_of_project: Optional[str] = None
 
 class CustomerCreate(CustomerBase):
     company_name: str
@@ -74,7 +78,14 @@ class CustomerCreate(CustomerBase):
     company_contact_number: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
-    status: str
+    status: Optional[str] = None
+    name: Optional[str] = None
+    contact_number: Optional[str] = None
+    email: Optional[str] = None
+    project_name: Optional[str] = None
+    project_location: Optional[str] = None
+    state: Optional[str] = None
+    type_of_project: Optional[str] = None
 
 class Customer(CustomerBase):
     id: int

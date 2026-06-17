@@ -2,9 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import axios from 'axios';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Trash2, Edit2 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import ChangeStatusModal from '../components/ChangeStatusModal';
+import EditCustomerModal from '../components/EditCustomerModal';
 
 export default function CustomerData() {
   const { token } = useContext(AuthContext);
@@ -13,6 +14,7 @@ export default function CustomerData() {
   const [customers, setCustomers] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
   const [statusModalCustomer, setStatusModalCustomer] = useState(null);
+  const [editingCustomer, setEditingCustomer] = useState(null);
 
   const searchParams = new URLSearchParams(location.search);
   const statusFilter = searchParams.get('status');
@@ -111,6 +113,16 @@ export default function CustomerData() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-500 dark:text-gray-400">
                       <div className="flex items-center justify-end space-x-3">
                         <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCustomer(customer);
+                          }}
+                          className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          title="Edit Customer"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button 
                           onClick={(e) => handleDeleteCustomer(e, customer.id)}
                           className="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
                           title="Delete Customer"
@@ -126,34 +138,48 @@ export default function CustomerData() {
                   {expandedRow === customer.id && (
                     <tr>
                       <td colSpan="5" className="px-6 py-4 bg-gray-50 dark:bg-gray-900">
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          <h4 className="font-semibold mb-2">Interaction History</h4>
-                          {customer.calls && customer.calls.length > 0 ? (
-                            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg mt-2">
-                              <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
-                                <thead className="bg-gray-100 dark:bg-gray-800">
-                                  <tr>
-                                    <th scope="col" className="py-2 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 dark:text-gray-200 sm:pl-6">Date & Time</th>
-                                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-gray-900 dark:text-gray-200">Status Set</th>
-                                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-gray-900 dark:text-gray-200">Call Count</th>
-                                    <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-gray-900 dark:text-gray-200">Remarks</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                                  {customer.calls.map(call => (
-                                    <tr key={call.id}>
-                                      <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 dark:text-gray-400 sm:pl-6">{new Date(call.date_time).toLocaleString()}</td>
-                                      <td className="whitespace-nowrap px-3 py-2 text-sm"><StatusBadge status={call.status_at_time} /></td>
-                                      <td className="whitespace-nowrap px-3 py-2 text-sm text-gray-500 dark:text-gray-400">{call.call_count}</td>
-                                      <td className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 break-words">{call.remarks}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                        <div className="text-sm text-gray-900 dark:text-white grid grid-cols-1 md:grid-cols-2 gap-6">
+                          
+                          <div>
+                            <h4 className="font-semibold mb-3 text-lg border-b border-gray-200 dark:border-gray-700 pb-2">Customer Details</h4>
+                            <div className="space-y-2">
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">Name:</span> {customer.name}</p>
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">Contact:</span> {customer.contact_number} {customer.email ? `| ${customer.email}` : ''}</p>
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">Project Name:</span> {customer.project_name || 'N/A'}</p>
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">Project Location:</span> {customer.project_location || 'N/A'}</p>
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">State:</span> {customer.state || 'N/A'}</p>
+                              <p><span className="font-medium text-gray-500 dark:text-gray-400">Type of Project:</span> {customer.type_of_project || 'N/A'}</p>
                             </div>
-                          ) : (
-                            <p className="text-gray-500 dark:text-gray-400">No interaction history yet.</p>
-                          )}
+                          </div>
+
+                          <div>
+                            <h4 className="font-semibold mb-3 text-lg border-b border-gray-200 dark:border-gray-700 pb-2">Interaction History</h4>
+                            {customer.calls && customer.calls.length > 0 ? (
+                              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                                <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
+                                  <thead className="bg-gray-100 dark:bg-gray-800">
+                                    <tr>
+                                      <th scope="col" className="py-2 pl-4 pr-3 text-left text-xs font-semibold text-gray-900 dark:text-gray-200 sm:pl-6">Date & Time</th>
+                                      <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-gray-900 dark:text-gray-200">Status</th>
+                                      <th scope="col" className="px-3 py-2 text-left text-xs font-semibold text-gray-900 dark:text-gray-200">Remarks</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                                    {customer.calls.map(call => (
+                                      <tr key={call.id}>
+                                        <td className="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 dark:text-gray-400 sm:pl-6">{new Date(call.date_time).toLocaleString()}</td>
+                                        <td className="whitespace-nowrap px-3 py-2 text-sm"><StatusBadge status={call.status_at_time} /></td>
+                                        <td className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 break-words">{call.remarks}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : (
+                              <p className="text-gray-500 dark:text-gray-400 mt-2">No interaction history yet.</p>
+                            )}
+                          </div>
+                          
                         </div>
                       </td>
                     </tr>
@@ -179,6 +205,14 @@ export default function CustomerData() {
           token={token} 
           onStatusChange={fetchCustomers}
           initialCustomer={statusModalCustomer}
+        />
+      )}
+      {editingCustomer && (
+        <EditCustomerModal
+          onClose={() => setEditingCustomer(null)}
+          token={token}
+          customer={editingCustomer}
+          onUpdate={fetchCustomers}
         />
       )}
     </div>

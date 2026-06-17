@@ -1,0 +1,27 @@
+services:
+  # Backend API Service
+  - type: web
+    name: crm-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: "*"
+
+  # Frontend Web Service
+  - type: web
+    name: crm-frontend
+    env: node
+    buildCommand: "cd frontend && npm install && npm run build"
+    startCommand: "cd frontend && npm run preview -- --port $PORT --host 0.0.0.0"
+    # Alternative for static deployment (better performance):
+    # staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: crm-backend
+          envVarKey: RENDER_EXTERNAL_URL

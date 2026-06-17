@@ -5,8 +5,9 @@ import { X } from 'lucide-react';
 export default function AddDataModal({ onClose, token }) {
   const [activeTab, setActiveTab] = useState('import');
   const [file, setFile] = useState(null);
-  const [formData, setFormData] = useState({ company_name: '', company_email: '', company_contact_number: '', name: '', contact_number: '', email: '', status: 'Not Assigned' });
+  const [formData, setFormData] = useState({ company_name: '', company_email: '', company_contact_number: '', name: '', contact_number: '', email: '', status: 'Not Assigned', project_name: '', project_location: '', state: '', type_of_project: '' });
   const [message, setMessage] = useState('');
+  const [importSummary, setImportSummary] = useState(null);
 
   const handleImportSubmit = async (e) => {
     e.preventDefault();
@@ -17,8 +18,12 @@ export default function AddDataModal({ onClose, token }) {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/customers/import`, data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-      setMessage(res.data.message);
-      setTimeout(onClose, 2000);
+      if (res.data.summary) {
+        setImportSummary(res.data.summary);
+      } else {
+        setMessage(res.data.message);
+        setTimeout(onClose, 2000);
+      }
     } catch (err) {
       if (err.response && err.response.data && err.response.data.detail) {
         setMessage(`Error: ${err.response.data.detail}`);
@@ -73,6 +78,18 @@ export default function AddDataModal({ onClose, token }) {
             </div>
 
             {message && <div className="mb-4 text-sm text-center text-primary-600 dark:text-primary-400">{message}</div>}
+            
+            {importSummary && (
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-md shadow-sm border border-gray-200 dark:border-gray-600">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Import Summary</h4>
+                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                  <li>Total Records Processed: <span className="font-medium text-gray-900 dark:text-white">{importSummary.total}</span></li>
+                  <li>Successfully Imported: <span className="font-medium text-green-600 dark:text-green-400">{importSummary.success}</span></li>
+                  <li>Skipped Duplicates: <span className="font-medium text-yellow-600 dark:text-yellow-400">{importSummary.skipped}</span></li>
+                  <li>Failed Records: <span className="font-medium text-red-600 dark:text-red-400">{importSummary.failed}</span></li>
+                </ul>
+              </div>
+            )}
 
             {activeTab === 'import' ? (
               <form onSubmit={handleImportSubmit}>
@@ -113,6 +130,33 @@ export default function AddDataModal({ onClose, token }) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                     <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
+                      <input type="text" value={formData.project_name} onChange={(e) => setFormData({...formData, project_name: e.target.value})} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Location</label>
+                      <input type="text" value={formData.project_location} onChange={(e) => setFormData({...formData, project_location: e.target.value})} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">State</label>
+                      <input type="text" value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type of Project</label>
+                      <select value={formData.type_of_project} onChange={(e) => setFormData({...formData, type_of_project: e.target.value})} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <option value="">Select Type...</option>
+                        <option value="Individual">Individual</option>
+                        <option value="Villa">Villa</option>
+                        <option value="Flat">Flat</option>
+                        <option value="High-Rise Apartment">High-Rise Apartment</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <div className="mt-5 sm:mt-6">

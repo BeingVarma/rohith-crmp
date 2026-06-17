@@ -28,6 +28,10 @@ class Customer(Base):
     contact_number = Column(String)
     email = Column(String, nullable=True)
     status = Column(String, default="Not Assigned")
+    project_name = Column(String, nullable=True)
+    project_location = Column(String, nullable=True)
+    state = Column(String, nullable=True)
+    type_of_project = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     company = relationship("Company", back_populates="customers")
