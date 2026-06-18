@@ -81,6 +81,20 @@ def delete_customer(customer_id: int, db: Session = Depends(database.get_db), cu
     db.commit()
     return {"message": "Customer deleted successfully"}
 
+@router.post("/bulk-delete")
+def bulk_delete_customers(request: schemas.CustomerBulkDelete, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    if not request.customer_ids:
+        raise HTTPException(status_code=400, detail="No customer IDs provided")
+        
+    # Delete associated calls first to avoid foreign key constraints errors
+    db.query(models.Call).filter(models.Call.customer_id.in_(request.customer_ids)).delete(synchronize_session=False)
+    
+    # Delete customers
+    deleted_count = db.query(models.Customer).filter(models.Customer.id.in_(request.customer_ids)).delete(synchronize_session=False)
+    db.commit()
+    
+    return {"message": f"Successfully deleted {deleted_count} customers"}
+
 @router.post("/import")
 async def import_customers(file: UploadFile = File(...), db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     if not file.filename.endswith(('.xlsx', '.csv')):

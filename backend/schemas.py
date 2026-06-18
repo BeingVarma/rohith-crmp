@@ -78,14 +78,17 @@ class CustomerCreate(CustomerBase):
     company_contact_number: Optional[str] = None
 
 class CustomerUpdate(BaseModel):
-    status: Optional[str] = None
     name: Optional[str] = None
     contact_number: Optional[str] = None
     email: Optional[str] = None
+    status: Optional[str] = None
     project_name: Optional[str] = None
     project_location: Optional[str] = None
     state: Optional[str] = None
     type_of_project: Optional[str] = None
+
+class CustomerBulkDelete(BaseModel):
+    customer_ids: List[int]
 
 class Customer(CustomerBase):
     id: int

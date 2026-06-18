@@ -15,6 +15,7 @@ export default function CustomerData() {
   const [expandedRow, setExpandedRow] = useState(null);
   const [statusModalCustomer, setStatusModalCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const [selectedCustomers, setSelectedCustomers] = useState([]);
 
   const searchParams = new URLSearchParams(location.search);
   const statusFilter = searchParams.get('status');
@@ -51,10 +52,44 @@ export default function CustomerData() {
         await axios.delete(`${import.meta.env.VITE_API_URL}/customers/${customerId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        setSelectedCustomers(prev => prev.filter(id => id !== customerId));
         fetchCustomers();
       } catch (err) {
         console.error("Failed to delete customer", err);
         alert('Failed to delete customer.');
+      }
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedCustomers(filteredCustomers.map(c => c.id));
+    } else {
+      setSelectedCustomers([]);
+    }
+  };
+
+  const handleSelectCustomer = (e, id) => {
+    e.stopPropagation();
+    if (e.target.checked) {
+      setSelectedCustomers(prev => [...prev, id]);
+    } else {
+      setSelectedCustomers(prev => prev.filter(customerId => customerId !== id));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (window.confirm(`Are you sure you want to delete ${selectedCustomers.length} selected customer(s)? This action cannot be undone.`)) {
+      try {
+        await axios.post(`${import.meta.env.VITE_API_URL}/customers/bulk-delete`, 
+          { customer_ids: selectedCustomers },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setSelectedCustomers([]);
+        fetchCustomers();
+      } catch (err) {
+        console.error("Failed to delete customers", err);
+        alert('Failed to delete selected customers.');
       }
     }
   };
@@ -74,19 +109,38 @@ export default function CustomerData() {
   return (
     <div className="py-2">
       <div>
-        <div className="mb-8 flex items-center">
-          <Link to="/" className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-            <ArrowLeft size={24} />
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {statusFilter ? `${statusFilter} Customers` : 'Customer Data'}
-          </h1>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center">
+            <Link to="/" className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <ArrowLeft size={24} />
+            </Link>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {statusFilter ? `${statusFilter} Customers` : 'Customer Data'}
+            </h1>
+          </div>
+          {selectedCustomers.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors shadow-sm"
+            >
+              <Trash2 size={18} className="mr-2" />
+              Delete Selected ({selectedCustomers.length})
+            </button>
+          )}
         </div>
         
         <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-colors duration-200">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
+                <th scope="col" className="px-6 py-3 text-left">
+                  <input 
+                    type="checkbox" 
+                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    onChange={handleSelectAll}
+                    checked={filteredCustomers.length > 0 && selectedCustomers.length === filteredCustomers.length}
+                  />
+                </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer Name</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Company</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
@@ -98,6 +152,14 @@ export default function CustomerData() {
               {filteredCustomers.map((customer) => (
                 <React.Fragment key={customer.id}>
                   <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => toggleRow(customer.id)}>
+                    <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                      <input 
+                        type="checkbox"
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        checked={selectedCustomers.includes(customer.id)}
+                        onChange={(e) => handleSelectCustomer(e, customer.id)}
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{customer.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{customer.company.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{customer.contact_number}</td>
@@ -137,7 +199,7 @@ export default function CustomerData() {
                   </tr>
                   {expandedRow === customer.id && (
                     <tr>
-                      <td colSpan="5" className="px-6 py-4 bg-gray-50 dark:bg-gray-900">
+                      <td colSpan="6" className="px-6 py-4 bg-gray-50 dark:bg-gray-900">
                         <div className="text-sm text-gray-900 dark:text-white grid grid-cols-1 md:grid-cols-2 gap-6">
                           
                           <div>
