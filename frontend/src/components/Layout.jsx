@@ -161,7 +161,11 @@ export default function Layout() {
                       searchResults.map(c => (
                         <li key={c.id}>
                           <Link 
-                            to={`/customers?search=${encodeURIComponent(c.name)}`}
+                            to={`/customers?highlight=${c.id}`}
+                            onClick={() => {
+                              setSearchTerm('');
+                              setIsSearchFocused(false);
+                            }}
                             className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0"
                           >
                             <div className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</div>

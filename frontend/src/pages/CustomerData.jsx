@@ -13,6 +13,7 @@ export default function CustomerData() {
   const location = useLocation();
   const [customers, setCustomers] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
   const [statusModalCustomer, setStatusModalCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
@@ -20,6 +21,7 @@ export default function CustomerData() {
   const searchParams = new URLSearchParams(location.search);
   const statusFilter = searchParams.get('status');
   const searchQuery = searchParams.get('search')?.toLowerCase() || '';
+  const highlightId = searchParams.get('highlight');
 
   const filteredCustomers = customers.filter(c => {
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
@@ -98,6 +100,27 @@ export default function CustomerData() {
     fetchCustomers();
   }, [token, navigate]);
 
+  useEffect(() => {
+    if (customers.length > 0 && highlightId) {
+      const id = parseInt(highlightId, 10);
+      setExpandedRow(id);
+      setHighlightedRowId(id);
+      
+      setTimeout(() => {
+        const element = document.getElementById(`customer-row-${id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+
+      const timer = setTimeout(() => {
+        setHighlightedRowId(null);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [customers, highlightId]);
+
   const toggleRow = (id) => {
     if (expandedRow === id) {
       setExpandedRow(null);
@@ -151,7 +174,13 @@ export default function CustomerData() {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {filteredCustomers.map((customer) => (
                 <React.Fragment key={customer.id}>
-                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => toggleRow(customer.id)}>
+                  <tr 
+                    id={`customer-row-${customer.id}`}
+                    className={`hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-1000 ${
+                      highlightedRowId === customer.id ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
+                    }`}
+                    onClick={() => toggleRow(customer.id)}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap" onClick={e => e.stopPropagation()}>
                       <input 
                         type="checkbox"
