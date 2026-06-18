@@ -94,7 +94,8 @@ export default function AddCallModal({ onClose, token }) {
                             <li 
                               key={c.id} 
                               className="text-gray-900 dark:text-white cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              onClick={() => {
+                              onMouseDown={(e) => {
+                                e.preventDefault();
                                 setFormData({...formData, customer_id: c.id});
                                 setCustomerSearch('');
                                 setIsDropdownOpen(false);

@@ -160,19 +160,21 @@ export default function Layout() {
                     ) : (
                       searchResults.map(c => (
                         <li key={c.id}>
-                          <Link 
-                            to={`/customers?highlight=${c.id}`}
-                            onClick={() => {
+                          <button 
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              navigate(`/customers?highlight=${c.id}`);
                               setSearchTerm('');
                               setIsSearchFocused(false);
                             }}
-                            className="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                            className="w-full text-left block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0"
                           >
                             <div className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
                               <span className="mr-2">{c.company.name} •</span> <StatusBadge status={c.status} />
                             </div>
-                          </Link>
+                          </button>
                         </li>
                       ))
                     )}
