@@ -20,6 +20,7 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
 
   const [searchTerm, setSearchTerm] = useState(initialCustomer ? `${initialCustomer.name} (${initialCustomer.company?.name || ''})` : '');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [remarks, setRemarks] = useState('');
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -48,6 +49,17 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      if (remarks.trim()) {
+        const selectedCustomerObj = customers.find(c => c.id.toString() === selectedCustomerId);
+        await axios.post(`${import.meta.env.VITE_API_URL}/calls/`, {
+          customer_id: parseInt(selectedCustomerId),
+          status_at_time: newStatus,
+          remarks: remarks.trim(),
+          call_count: (selectedCustomerObj?.calls?.length || 0) + 1
+        }, { headers: { Authorization: `Bearer ${token}` } });
+      }
+
       setMessage('Status updated successfully!');
       if (onStatusChange) onStatusChange();
       setTimeout(onClose, 1500);
@@ -56,6 +68,8 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
       setIsLoading(false);
     }
   };
+
+  const selectedCustomerObj = customers.find(c => c.id.toString() === selectedCustomerId);
 
   const handleSelectCustomer = (customer) => {
     setSelectedCustomerId(customer.id.toString());
@@ -128,6 +142,21 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
                     </div>
                   )}
                 </div>
+
+                {selectedCustomerObj && selectedCustomerObj.calls && selectedCustomerObj.calls.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Previous Remarks</label>
+                    <div className="max-h-32 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900 p-2 space-y-2">
+                      {[...selectedCustomerObj.calls].reverse().map(call => (
+                        <div key={call.id} className="text-xs">
+                          <span className="text-gray-500 dark:text-gray-400 block">{new Date(call.date_time).toLocaleString()} - <span className="font-semibold">{call.status_at_time}</span></span>
+                          <span className="text-gray-800 dark:text-gray-200">{call.remarks}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">New Status</label>
                   <select
@@ -140,6 +169,17 @@ export default function ChangeStatusModal({ onClose, token, onStatusChange, init
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Remarks (Optional)</label>
+                  <textarea
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    rows={3}
+                    placeholder="Add a remark for this status update..."
+                    className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
                 </div>
               </div>
               <div className="mt-5 sm:mt-6">

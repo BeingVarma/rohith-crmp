@@ -144,7 +144,8 @@ async def import_customers(file: UploadFile = File(...), db: Session = Depends(d
             'Project Name': ['project name', 'project', 'site name'],
             'Project Location': ['project location', 'location', 'site location'],
             'State': ['state', 'region', 'province'],
-            'Type of Project': ['type of project', 'project type', 'type']
+            'Type of Project': ['type of project', 'project type', 'type'],
+            'Remarks': ['remarks', 'remark', 'notes', 'note']
         }
         
         # Map actual dataframe columns to our required columns
@@ -236,6 +237,22 @@ async def import_customers(file: UploadFile = File(...), db: Session = Depends(d
                     type_of_project=type_of_project_val if type_of_project_val and type_of_project_val.lower() != 'nan' else None
                 )
                 db.add(db_customer)
+                db.flush()
+
+                # Check for remarks and create initial Call if present
+                remarks_val = None
+                if col_map['Remarks'] and pd.notna(row[col_map['Remarks']]):
+                    remarks_val = str(row[col_map['Remarks']]).strip()
+                    
+                if remarks_val and remarks_val.lower() != 'nan':
+                    db_call = models.Call(
+                        customer_id=db_customer.id,
+                        status_at_time="Not Assigned",
+                        remarks=remarks_val,
+                        call_count=1
+                    )
+                    db.add(db_call)
+                    
                 success_count += 1
             except Exception as row_error:
                 failed_count += 1

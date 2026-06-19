@@ -17,6 +17,8 @@ export default function CustomerData() {
   const [statusModalCustomer, setStatusModalCustomer] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
+  const [newRemark, setNewRemark] = useState("");
+  const [isSubmittingRemark, setIsSubmittingRemark] = useState(false);
 
   const searchParams = new URLSearchParams(location.search);
   const statusFilter = searchParams.get('status');
@@ -60,6 +62,27 @@ export default function CustomerData() {
         console.error("Failed to delete customer", err);
         alert('Failed to delete customer.');
       }
+    }
+  };
+
+  const handleAddRemark = async (customer) => {
+    if (!newRemark.trim()) return;
+    setIsSubmittingRemark(true);
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/calls/`, {
+        customer_id: customer.id,
+        status_at_time: customer.status,
+        remarks: newRemark,
+        call_count: (customer.calls?.length || 0) + 1
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNewRemark("");
+      fetchCustomers();
+    } catch (err) {
+      console.error("Failed to add remark", err);
+    } finally {
+      setIsSubmittingRemark(false);
     }
   };
 
@@ -245,7 +268,32 @@ export default function CustomerData() {
                           </div>
 
                           <div>
-                            <h4 className="font-semibold mb-3 text-lg border-b border-gray-200 dark:border-gray-700 pb-2">Interaction History</h4>
+                            <div className="flex justify-between items-center mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+                              <h4 className="font-semibold text-lg">Interaction History & Remarks</h4>
+                            </div>
+                            
+                            <div className="mb-4">
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Type a new remark..."
+                                  value={newRemark}
+                                  onChange={(e) => setNewRemark(e.target.value)}
+                                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddRemark(customer);
+                                  }}
+                                />
+                                <button
+                                  onClick={() => handleAddRemark(customer)}
+                                  disabled={isSubmittingRemark || !newRemark.trim()}
+                                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+                                >
+                                  {isSubmittingRemark ? 'Adding...' : 'Add Remark'}
+                                </button>
+                              </div>
+                            </div>
+
                             {customer.calls && customer.calls.length > 0 ? (
                               <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                                 <table className="min-w-full divide-y divide-gray-300 dark:divide-gray-600">
