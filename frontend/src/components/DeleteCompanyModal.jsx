@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-import api from '../services/api';
+import axios from 'axios';
 
-const DeleteCompanyModal = ({ isOpen, onClose, company, onCompanyDeleted }) => {
+const DeleteCompanyModal = ({ isOpen, onClose, company, onCompanyDeleted, token }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
@@ -13,7 +13,9 @@ const DeleteCompanyModal = ({ isOpen, onClose, company, onCompanyDeleted }) => {
     setError('');
     
     try {
-      await api.delete(`/companies/${company.id}`);
+      await axios.delete(`${import.meta.env.VITE_API_URL}/companies/${company.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       onCompanyDeleted();
       onClose();
     } catch (err) {

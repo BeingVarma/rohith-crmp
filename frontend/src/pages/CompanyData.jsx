@@ -168,6 +168,7 @@ export default function CompanyData() {
         isOpen={!!companyToDelete}
         onClose={() => setCompanyToDelete(null)}
         company={companyToDelete}
+        token={token}
         onCompanyDeleted={() => {
           setCompanyToDelete(null);
           fetchCompanies();
