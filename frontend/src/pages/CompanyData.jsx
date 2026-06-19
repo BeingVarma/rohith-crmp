@@ -2,10 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../App';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp, Edit2, Mail, Phone } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp, Edit2, Mail, Phone, Trash2 } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import EditCompanyModal from '../components/EditCompanyModal';
 import AddCompanyModal from '../components/AddCompanyModal';
+import DeleteCompanyModal from '../components/DeleteCompanyModal';
 
 export default function CompanyData() {
   const { token } = useContext(AuthContext);
@@ -13,6 +14,7 @@ export default function CompanyData() {
   const [companies, setCompanies] = useState([]);
   const [expandedRow, setExpandedRow] = useState(null);
   const [editModalCompany, setEditModalCompany] = useState(null);
+  const [companyToDelete, setCompanyToDelete] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const fetchCompanies = async () => {
@@ -97,6 +99,13 @@ export default function CompanyData() {
                         >
                           <Edit2 size={18} />
                         </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setCompanyToDelete(company); }}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                          title="Delete Company"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                         {expandedRow === company.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                       </div>
                     </td>
@@ -155,6 +164,15 @@ export default function CompanyData() {
           onUpdate={fetchCompanies}
         />
       )}
+      <DeleteCompanyModal
+        isOpen={!!companyToDelete}
+        onClose={() => setCompanyToDelete(null)}
+        company={companyToDelete}
+        onCompanyDeleted={() => {
+          setCompanyToDelete(null);
+          fetchCompanies();
+        }}
+      />
       {isAddModalOpen && (
         <AddCompanyModal
           token={token}

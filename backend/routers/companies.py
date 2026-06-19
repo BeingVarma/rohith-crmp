@@ -59,3 +59,25 @@ def update_company(company_id: int, company_update: schemas.CompanyUpdate, db: S
     db.commit()
     db.refresh(db_company)
     return db_company
+
+@router.delete("/{company_id}")
+def delete_company(company_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    db_company = db.query(models.Company).filter(models.Company.id == company_id).first()
+    if not db_company:
+        raise HTTPException(status_code=404, detail="Company not found")
+        
+    # Get all customer IDs for this company
+    customers = db.query(models.Customer).filter(models.Customer.company_id == company_id).all()
+    customer_ids = [c.id for c in customers]
+    
+    if customer_ids:
+        # Delete associated calls first to avoid foreign key constraints errors
+        db.query(models.Call).filter(models.Call.customer_id.in_(customer_ids)).delete(synchronize_session=False)
+        # Delete customers
+        db.query(models.Customer).filter(models.Customer.company_id == company_id).delete(synchronize_session=False)
+        
+    # Delete the company
+    db.delete(db_company)
+    db.commit()
+    
+    return {"message": "Company deleted successfully"}
