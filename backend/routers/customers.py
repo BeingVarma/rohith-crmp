@@ -76,9 +76,19 @@ def delete_customer(customer_id: int, db: Session = Depends(database.get_db), cu
     if not db_customer:
         raise HTTPException(status_code=404, detail="Customer not found")
         
+    company_id = db_customer.company_id
+        
     db.query(models.Call).filter(models.Call.customer_id == customer_id).delete()
     db.delete(db_customer)
     db.commit()
+    
+    # Cleanup orphaned company
+    if company_id:
+        remaining_customers = db.query(models.Customer).filter(models.Customer.company_id == company_id).count()
+        if remaining_customers == 0:
+            db.query(models.Company).filter(models.Company.id == company_id).delete()
+            db.commit()
+            
     return {"message": "Customer deleted successfully"}
 
 @router.post("/bulk-delete")
@@ -86,12 +96,24 @@ def bulk_delete_customers(request: schemas.CustomerBulkDelete, db: Session = Dep
     if not request.customer_ids:
         raise HTTPException(status_code=400, detail="No customer IDs provided")
         
+    # Get associated company IDs before deletion
+    customers_to_delete = db.query(models.Customer).filter(models.Customer.id.in_(request.customer_ids)).all()
+    company_ids = set([c.company_id for c in customers_to_delete if c.company_id])
+        
     # Delete associated calls first to avoid foreign key constraints errors
     db.query(models.Call).filter(models.Call.customer_id.in_(request.customer_ids)).delete(synchronize_session=False)
     
     # Delete customers
     deleted_count = db.query(models.Customer).filter(models.Customer.id.in_(request.customer_ids)).delete(synchronize_session=False)
     db.commit()
+    
+    # Cleanup orphaned companies
+    if company_ids:
+        for cid in company_ids:
+            remaining = db.query(models.Customer).filter(models.Customer.company_id == cid).count()
+            if remaining == 0:
+                db.query(models.Company).filter(models.Company.id == cid).delete(synchronize_session=False)
+        db.commit()
     
     return {"message": f"Successfully deleted {deleted_count} customers"}
 
