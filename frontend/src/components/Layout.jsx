@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../App';
-import { Search, Plus, Upload, LogOut, User } from 'lucide-react';
+import { Search, Plus, Upload, LogOut, User, Menu, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import AddDataModal from './AddDataModal';
 import AddCallModal from './AddCallModal';
@@ -22,6 +22,7 @@ export default function Layout() {
   const [customers, setCustomers] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [projectTitle, setProjectTitle] = useState('CRM Project');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -83,42 +84,53 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-gray-900/80 md:hidden" 
+          onClick={() => setIsSidebarOpen(false)} 
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 bg-gray-900 text-white flex flex-col transition-colors duration-200">
-        <div className="h-16 flex items-center px-6 bg-gray-950 font-bold text-xl border-b border-gray-800 shrink-0">
-          <Link to="/" className="truncate" title={projectTitle}>{projectTitle}</Link>
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-16 flex items-center justify-between px-6 bg-gray-950 border-b border-gray-800 shrink-0">
+          <Link to="/" className="truncate font-bold text-xl" title={projectTitle}>{projectTitle}</Link>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-gray-400 hover:text-white">
+            <X className="h-6 w-6" />
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
           <nav className="space-y-1 px-3">
-            <Link to="/" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               Dashboard
             </Link>
-            <Link to="/companies" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/companies" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               Company Data
             </Link>
-            <Link to="/customers" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               Customer Data
             </Link>
             
             <div className="pt-6 pb-2">
               <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status Lists</p>
             </div>
-            <Link to="/customers?status=Not%20Assigned" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Not%20Assigned" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-purple-500 mr-3"></span>Not Assigned
             </Link>
-            <Link to="/customers?status=Hotlist" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Hotlist" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-red-500 mr-3"></span>Hotlist
             </Link>
-            <Link to="/customers?status=Confirmed%20List" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Confirmed%20List" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-green-500 mr-3"></span>Confirmed List
             </Link>
-            <Link to="/customers?status=Not%20Responding%20List" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Not%20Responding%20List" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-yellow-500 mr-3"></span>Not Responding
             </Link>
-            <Link to="/customers?status=Callback%20List" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Callback%20List" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-blue-500 mr-3"></span>Callback List
             </Link>
-            <Link to="/customers?status=Rejected%20List" className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
+            <Link to="/customers?status=Rejected%20List" onClick={() => setIsSidebarOpen(false)} className="text-gray-300 hover:bg-gray-800 hover:text-white group flex items-center px-3 py-2 text-sm font-medium rounded-md">
               <span className="w-2 h-2 rounded-full bg-gray-500 mr-3"></span>Rejected List
             </Link>
 
@@ -135,10 +147,16 @@ export default function Layout() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Top Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 transition-colors duration-200 shrink-0">
-          <div className="flex-1 flex items-center">
+          <div className="flex items-center flex-1">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="mr-4 md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
             <form onSubmit={handleSearch} className="max-w-lg w-full relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -194,20 +212,22 @@ export default function Layout() {
             </form>
           </div>
           
-          <div className="flex items-center space-x-4 ml-6">
+          <div className="flex items-center space-x-2 sm:space-x-4 ml-2 sm:ml-6 shrink-0">
             <button
               onClick={() => setIsCallModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none transition-colors"
+              className="inline-flex items-center px-2 sm:px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none transition-colors"
+              title="Add Call"
             >
-              <Plus className="-ml-1 mr-2 h-5 w-5" />
-              Add Call
+              <Plus className="sm:-ml-1 sm:mr-2 h-5 w-5" />
+              <span className="hidden sm:inline">Add Call</span>
             </button>
             <button
               onClick={() => setIsDataModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="inline-flex items-center px-2 sm:px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              title="Add Data"
             >
-              <Upload className="-ml-1 mr-2 h-5 w-5 text-gray-400" />
-              Add Data
+              <Upload className="sm:-ml-1 sm:mr-2 h-5 w-5 text-gray-400" />
+              <span className="hidden sm:inline">Add Data</span>
             </button>
             <ThemeToggle />
             <Link to="/profile" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="Profile">

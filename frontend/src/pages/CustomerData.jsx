@@ -132,12 +132,12 @@ export default function CustomerData() {
   return (
     <div className="py-2">
       <div>
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-4 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center">
             <Link to="/" className="mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
               <ArrowLeft size={24} />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {statusFilter ? `${statusFilter} Customers` : 'Customer Data'}
             </h1>
           </div>
@@ -152,8 +152,9 @@ export default function CustomerData() {
           )}
         </div>
         
-        <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg transition-colors duration-200">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg transition-colors duration-200">
+          <div className="overflow-x-auto w-full">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left">
@@ -277,8 +278,9 @@ export default function CustomerData() {
                   )}
                 </React.Fragment>
               ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
           {filteredCustomers.length === 0 && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               {searchQuery 

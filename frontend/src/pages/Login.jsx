@@ -27,7 +27,7 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex items-center justify-center min-h-screen px-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
