@@ -119,7 +119,7 @@ def bulk_delete_customers(request: schemas.CustomerBulkDelete, db: Session = Dep
 
 @router.post("/import")
 async def import_customers(file: UploadFile = File(...), db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    if not file.filename.endswith(('.xlsx', '.csv')):
+    if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
         raise HTTPException(status_code=400, detail="Invalid file format")
     
     try:
